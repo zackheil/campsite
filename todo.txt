@@ -1,0 +1,36 @@
+minimal:
+- homebrew
+- dot files
+- brew:tmux
+- brew:ripgrep
+- brew:nvim+lazy
+- brew:jq
+- script: add developer folder to mds blacklist
+
+
+comfortable:
+- minimal
+- nvm
+- brew:sst
+- brew:mas
+- brew:aws-cli
+- mas:bitwarden
+
+
+full:
+- comfortable
+- apple:rosetta
+- brew:obsidian
+- script: clone obsidian vault
+- brew:<browser>
+- brew:tableplus
+- brew:vsc*de-insiders
+- script:extension install script
+- brew:betterdisplay
+- brew:rectangle
+- brew:postman
+- brew:obs
+- brew:keyboard-maestro
+- brew:maccy
+- brew:android-studio
+- mas:xcode
