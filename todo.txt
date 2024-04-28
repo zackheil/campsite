@@ -1,11 +1,13 @@
 minimal:
 - homebrew
 - dot files
+- brew:CommitMonoNerdFont
 - brew:tmux
 - brew:ripgrep
 - brew:nvim+lazy
 - brew:jq
 - script: add developer folder to mds blacklist
+- script: defaults-com -> inspiration https://gist.github.com/brandonb927/3195465/
 
 
 comfortable:
@@ -15,6 +17,7 @@ comfortable:
 - brew:mas
 - brew:aws-cli
 - mas:bitwarden
+- brew:rectangle
 
 
 full:
@@ -25,12 +28,19 @@ full:
 - brew:<browser>
 - brew:tableplus
 - brew:vsc*de-insiders
+- script:vsc-extensions
 - script:extension install script
 - brew:betterdisplay
-- brew:rectangle
 - brew:postman
 - brew:obs
 - brew:keyboard-maestro
 - brew:maccy
 - brew:android-studio
 - mas:xcode
+- brew:duti
+- script:duti mapping (last)
+
+
+
+notes: 
+- should this use brewfiles? e.g.: https://www.moncefbelyamani.com/how-to-install-xcode-with-homebrew/
