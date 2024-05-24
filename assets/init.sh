@@ -20,7 +20,7 @@ if [ ! -f "$zip_file" ]; then
   exit 1  
 fi
 
-(unzip -qq main.zip) > /dev/null 2>&1
+unzip $zip_file &> /dev/null
 
 dir_name="campsite-$branch"
 if [ ! -d "$dir_name" ]; then
