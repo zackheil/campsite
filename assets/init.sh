@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 branch="dev"
-zip_file="campsite-$branch.zip"
+zip_file="$branch.zip"
 
 temp_dir=$(mktemp -d)
 
@@ -33,7 +33,7 @@ echo "Repository downloaded as $zip_file"
 unzip $zip_file
 
 # Check if the unzip was successful
-if [ ! -d "campsite-$branch" ]; then
+if [ ! -d "$branch" ]; then
   echo "Failed to unzip the repository."
   exit 1
 fi
@@ -44,7 +44,7 @@ echo "Repository unzipped"
 rm -rf "$HOME/.installer"
 
 # Move the unzipped contents to the home directory as .installer
-mv campsite-$branch "$HOME/.installer"
+mv $branch "$HOME/.installer"
 
 # Check if the move was successful
 if [ ! -d "$HOME/.installer" ]; then
