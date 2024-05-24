@@ -19,6 +19,8 @@ cd "$temp_dir" || exit
 # Download the GitHub repository as a zip file
 curl -L -O https://github.com/zackheil/campsite/archive/$branch.zip
 
+ls -la
+
 # Check if the download was successful
 if [ ! -f $zip_file ]; then
   echo "Failed to download the repository."
