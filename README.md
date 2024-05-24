@@ -13,5 +13,5 @@ Comes in three flavors (ideally in two OSes, but just macOS for now):
 Setup with the following command:
 
 ```zsh
-/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/zackheil/campsite/main/assets/init.sh)"
+/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/zackheil/campsite/dev/assets/init.sh)"
 ```
