@@ -19,12 +19,12 @@ cd "$temp_dir" || exit
 # Download the GitHub repository as a zip file
 curl -L -O https://github.com/zackheil/campsite/archive/$branch.zip
 
-ls -la
+echo $(ls -la)
 
 # Check if the download was successful
-if [ ! -f $zip_file ]; then
+if [ ! -f "$zip_file" ]; then
   echo "Failed to download the repository."
-  exit 1
+  exit 1  
 fi
 
 echo "Repository downloaded as $zip_file"
@@ -32,26 +32,27 @@ echo "Repository downloaded as $zip_file"
 # Unzip the contents
 unzip $zip_file
 
+dir_name="campsite-$branch"
+
 # Check if the unzip was successful
-if [ ! -d "$branch" ]; then
+if [ ! -d "$dir_name" ]; then
   echo "Failed to unzip the repository."
-  exit 1
+  exit 1  
 fi
 
 echo "Repository unzipped"
 
 # Remove any existing .installer directory
-rm -rf "$HOME/.installer"
+rm -rf "$HOME/.local/campsite"
 
 # Move the unzipped contents to the home directory as .installer
-mv $branch "$HOME/.installer"
+mv $dir_name "$HOME/.local/campsite"
 
 # Check if the move was successful
-if [ ! -d "$HOME/.installer" ]; then
-  echo "Failed to move the repository to ~/.installer."
+if [ ! -d "$HOME/.local/campsite" ]; then
+  echo "Failed to move the repository to ~/.local/campsite"
   exit 1
 fi
 
-echo "Repository moved to ~/.installer"
-echo "Temporary directory cleaned up"
-echo "Setup complete. The repository is now located at ~/.installer"
+echo "Repository moved to ~/.local/campsite"
+echo "Setup complete. The repository is now located at ~/.local/campsite"
