@@ -10,7 +10,7 @@ source "$ASSETS_DIR/logger"
 log_dbg "$FILENAME" "Starting script"
 
 
-echo "Hello, configure!"
+echo "Hello, installer!"
 
 
 log_dbg "$FILENAME" "Finishing script"
