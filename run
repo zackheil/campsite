@@ -1,11 +1,11 @@
 #!/usr/bin/env zsh
 
-typeset -gr CONFIG_ACTION_SCRIPT_DIR="$(dirname $(readlink -f $0))/config-actions"
-typeset -gr INSTALL_ACTION_SCRIPT_DIR="$(dirname $(readlink -f $0))/install-actions"
-typeset -gr ASSET_DIR="$(dirname $(readlink -f $0))/assets"
+typeset -r CONFIG_ACTION_SCRIPT_DIR="$(dirname $(readlink -f $0))/config-actions"
+typeset -r INSTALL_ACTION_SCRIPT_DIR="$(dirname $(readlink -f $0))/install-actions"
+typeset -r ASSET_DIR="$(dirname $(readlink -f $0))/assets"
 
-typeset -gr INITIAL_RUN="$1"
-typeset -gr SCRIPT_DEBUG="true"
+typeset -r INITIAL_RUN="$1"
+typeset -r SCRIPT_DEBUG="true"
 
 # validate locations before doing anything
 if [[ ! -d $CONFIG_ACTION_SCRIPT_DIR ]]; then
@@ -23,7 +23,12 @@ if [[ ! -d $ASSET_DIR ]]; then
     exit 1
 fi
 
+echo "0: $0"
+echo "config: $CONFIG_ACTION_SCRIPT_DIR"
+echo "install: $INSTALL_ACTION_SCRIPT_DIR"
+echo "asset: $ASSET_DIR"
 echo "$ASSETS_DIR/logger"
+
 source "$ASSETS_DIR/logger"
 
 # usage: configure <topic>
@@ -44,12 +49,15 @@ function install() {
     fi
 }
 
-
 # on initial run, it is run with sudo - keep that alive
-if [[ $INITIAL_RUN == "true" ]]; then
+if [ "$INITIAL_RUN" ]; then
     log_dbg "Initial run detected. Running with sudo."
     sudo -v
-    while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+    while true; do
+        sudo -n true
+        sleep 60
+        kill -0 "$$" || exit
+    done 2>/dev/null &
 fi
 
 configure "world"
