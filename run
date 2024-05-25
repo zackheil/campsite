@@ -23,6 +23,7 @@ if [[ ! -d $ASSET_DIR ]]; then
     exit 1
 fi
 
+echo "$ASSETS_DIR/logger"
 source "$ASSETS_DIR/logger"
 
 # usage: configure <topic>
@@ -46,7 +47,7 @@ function install() {
 
 # on initial run, it is run with sudo - keep that alive
 if [[ $INITIAL_RUN == "true" ]]; then
-    log_info "Initial run detected. Running with sudo."
+    log_dbg "Initial run detected. Running with sudo."
     sudo -v
     while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 fi
