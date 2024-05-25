@@ -1,51 +1,46 @@
 #!/usr/bin/env zsh
 
-typeset -r CONFIG_ACTION_SCRIPT_DIR="$(dirname $(readlink -f $0))/config-actions"
-typeset -r INSTALL_ACTION_SCRIPT_DIR="$(dirname $(readlink -f $0))/install-actions"
-typeset -r ASSET_DIR="$(dirname $(readlink -f $0))/assets"
+typeset -r CONFIG_ACTIONS_SCRIPT_DIR="$(dirname $(readlink -f $0))/config-actions"
+typeset -r INSTALL_ACTIONS_SCRIPT_DIR="$(dirname $(readlink -f $0))/install-actions"
+typeset -r ASSETS_DIR="$(dirname $(readlink -f $0))/assets"
 
 typeset -r INITIAL_RUN="$1"
 typeset -r SCRIPT_DEBUG="true"
 
 # validate locations before doing anything
-if [[ ! -d $CONFIG_ACTION_SCRIPT_DIR ]]; then
-    echo "ERROR: Config action script directory not found: $CONFIG_ACTION_SCRIPT_DIR"
+if [[ ! -d $CONFIG_ACTIONS_SCRIPT_DIR ]]; then
+    echo "ERROR: Config action script directory not found: $CONFIG_ACTIONS_SCRIPT_DIR"
     exit 1
 fi
 
-if [[ ! -d $INSTALL_ACTION_SCRIPT_DIR ]]; then
-    echo "ERROR: Install action script directory not found: $INSTALL_ACTION_SCRIPT_DIR"
+if [[ ! -d $INSTALL_ACTIONS_SCRIPT_DIR ]]; then
+    echo "ERROR: Install action script directory not found: $INSTALL_ACTIONS_SCRIPT_DIR"
     exit 1
 fi
 
-if [[ ! -d $ASSET_DIR ]]; then
-    echo "ERROR: Asset directory not found: $ASSET_DIR"
+if [[ ! -d $ASSETS_DIR ]]; then
+    echo "ERROR: Asset directory not found: $ASSETS_DIR"
     exit 1
 fi
 
-echo "0: $0"
-echo "config: $CONFIG_ACTION_SCRIPT_DIR"
-echo "install: $INSTALL_ACTION_SCRIPT_DIR"
-echo "asset: $ASSET_DIR"
-echo "$ASSETS_DIR/logger"
 
 source "$ASSETS_DIR/logger"
 
 # usage: configure <topic>
 function configure() {
-    if [ ! -f "$CONFIG_ACTION_SCRIPT_DIR/$1" ]; then
-        log_err "The file '$CONFIG_ACTION_SCRIPT_DIR/$1' does not exist. Skipping."
+    if [ ! -f "$CONFIG_ACTIONS_SCRIPT_DIR/$1" ]; then
+        log_err "The file '$CONFIG_ACTIONS_SCRIPT_DIR/$1' does not exist. Skipping."
     else
-        zsh "$CONFIG_ACTION_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
+        zsh "$CONFIG_ACTIONS_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
     fi
 }
 
 # usage: install <topic>
 function install() {
-    if [ ! -f "$INSTALL_ACTION_SCRIPT_DIR/$1" ]; then
-        log_err "The file '$INSTALL_ACTION_SCRIPT_DIR/$1' does not exist. Skipping."
+    if [ ! -f "$INSTALL_ACTIONS_SCRIPT_DIR/$1" ]; then
+        log_err "The file '$INSTALL_ACTIONS_SCRIPT_DIR/$1' does not exist. Skipping."
     else
-        zsh "$INSTALL_ACTION_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
+        zsh "$INSTALL_ACTIONS_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
     fi
 }
 
