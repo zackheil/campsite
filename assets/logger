@@ -1,0 +1,44 @@
+# each logger fn supports 2 args: 
+# <context> <message>
+# <message> (context is optional)
+
+# If run in sudo context, colors won't exist from rc
+typeset -gr sh_red=${sh_red:-$(tput setaf 1)}
+typeset -gr sh_green=${sh_green:-$(tput setaf 2)}
+typeset -gr sh_yellow=${sh_yellow:-$(tput setaf 3)}
+typeset -gr sh_magenta=${sh_magenta:-$(tput setaf 5)}
+typeset -gr sh_reset=${sh_reset:-$(tput sgr0)}
+
+function log_dbg() {
+    if [ "$SCRIPT_DEBUG" ]; then
+        if [ "$2" ]; then
+            echo "${sh_yellow}[$1]: $2${sh_reset}"
+        else
+            echo "${sh_yellow}$@${sh_reset}"
+        fi
+    fi
+}
+
+function log_ok() {
+    if [ "$2" ]; then
+        echo "${sh_green}[$1]: $2${sh_reset}"
+    else
+        echo "${sh_green}$@${sh_reset}"
+    fi
+}
+
+function log_warn() {
+    if [ "$2" ]; then
+        echo "${sh_magenta}[$1]: $2${sh_reset}"
+    else
+        echo "${sh_magenta}$@${sh_reset}"
+    fi
+}
+
+function log_err() {
+    if [ "$2" ]; then
+        echo "${sh_red}[$1]: $2${sh_reset}"
+    else
+        echo "${sh_red}$@${sh_reset}"
+    fi
+}
