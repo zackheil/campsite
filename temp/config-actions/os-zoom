@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/macos-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+cmd_key_id=1048576
+set_local_pref com.apple.AppleMultitouchTrackpad HIDScrollZoomModifierMask int $cmd_key_id
+set_local_pref com.apple.driver.AppleBluetoothMultitouch.trackpad HIDScrollZoomModifierMask int $cmd_key_id
+set_local_pref com.apple.universalaccess closeViewScrollWheelModifiersInt int $cmd_key_id
+set_local_pref com.apple.universalaccess closeViewScrollWheelToggle bool true
+
+set_local_host_pref com.apple.AppleMultitouchTrackpad HIDScrollZoomModifierMask int $cmd_key_id
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

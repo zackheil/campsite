@@ -1,0 +1,41 @@
+#!/usr/bin/env zsh
+
+source $(dirname $(readlink -f $0))/logger
+
+typeset MACOS_DEVICE_UUID=$(ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}')
+
+# Finds an application name recursively in known macOS application directories.
+# Prefers user apps over root apps over system apps. Echoes full path to the app
+# usage: find_app <app_name>
+function find_app() {
+    typeset -r app_name=$(echo $1 | sed 's/\.app$//')
+
+    # user apps (~/Applications/**/*.app)
+    log_dbg "fn|find_app" "Searching $HOME/Applications/**/$app_name.app for app"
+    typeset -r user_app=$(find "$HOME/Applications" -name "$app_name.app" -type d -maxdepth 2 | head -n 1)
+    if [[ -n $user_app ]]; then
+        log_dbg "fn|find_app" "Found at $user_app"
+        echo $user_app
+        return
+    fi
+
+    # root apps (/Applications/**/*.app)
+    log_dbg "fn|find_app" "Searching /Applications/**/$app_name.app for app"
+    typeset -r root_app=$(find /Applications -name "$app_name.app" -type d -maxdepth 2 | head -n 1)
+    if [[ -n $root_app ]]; then
+        log_dbg "fn|find_app" "Found at $root_app"
+        echo $root_app
+        return
+    fi
+
+    # system apps (/System/Applications/**/*.app)
+    log_dbg "fn|find_app" "Searching /System/Applications/**/$app_name.app for app"
+    typeset -r system_app=$(find /System/Applications -name "$app_name.app" -type d -maxdepth 2 | head -n 1)
+    if [[ -n $system_app ]]; then
+        log_dbg "fn|find_app" "Found at $system_app"
+        echo $system_app
+        return
+    fi
+
+    log_dbg "fn|find_app" "Could not find app: $app_name"
+}

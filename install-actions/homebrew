@@ -1,0 +1,26 @@
+#!/usr/bin/env zsh
+
+typeset -r SCRIPT_DEBUG="$1"
+typeset -r FILENAME="install|$(basename $0)"
+typeset ASSETS_DIR="$(dirname $(dirname $(realpath $0)))/assets"
+typeset UTILS_DIR="$(dirname $(dirname $(realpath $0)))/shell-utils"
+
+source "$UTILS_DIR/logger"
+source "$UTILS_DIR/macos-utils"
+
+
+log_dbg "$FILENAME" "Starting script"
+
+
+# Check to see if homebrew is already installed (/opt/homebrew/bin/brew)
+if [ -f "/opt/homebrew/bin/brew" ]; then
+    log_dbg "$FILENAME" "Homebrew is already installed"
+    exit 0
+else
+    typeset NONINTERACTIVE=1
+    sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+
+log_dbg "$FILENAME" "Finishing script"
+log_ok "$FILENAME" "Installation complete!"

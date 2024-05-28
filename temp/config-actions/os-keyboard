@@ -1,0 +1,23 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/macos-utils
+source $ASSETS_DIR/file-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+# values are multiples of 15ms
+set_pref NSGlobalDomain InitialKeyRepeat int 15
+set_pref NSGlobalDomain KeyRepeat int 2
+
+check_sudo && set_pref_dict /Library/Preferences/FeatureFlags/Domain/UIKit.plist emoji_enhancements Enabled bool false
+
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

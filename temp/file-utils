@@ -1,0 +1,75 @@
+source $(dirname $(readlink -f $0))/logger
+
+has_cli() {
+    local referenced_file=${FILENAME:-unknown}
+    local cli_tool=$1
+
+    zdbg $referenced_file "Checking for the existence of '$cli_tool' via PATH"
+
+    if ! command -v $cli_tool &> /dev/null; then
+        zdbg $referenced_file "Could not find '$cli_tool' in PATH"
+        return 1
+    fi
+
+    zdbg $referenced_file "Found '$cli_tool' in PATH"
+} 
+
+has_app() {
+    local referenced_file=${FILENAME:-unknown}
+    local app_name=$1
+
+    zdbg $referenced_file "Checking for the existence of '$app_name' in /Applications"
+
+    if [ ! -d "/Applications/$app_name.app" ]; then
+        zdbg $referenced_file "Could not find '$app_name' in /Applications"
+        return 1
+    fi
+
+    zdbg $referenced_file "Found '$app_name' in /Applications"
+}
+
+check_sudo() {
+    local referenced_file=${FILENAME:-unknown}
+
+    if ! sudo -n true &> /dev/null; then
+        zdbg $referenced_file "Failed sudo check"
+        return 1
+    fi
+
+    zdbg $referenced_file "Passed sudo check"
+}
+
+replace_file() {
+    local referenced_file=${FILENAME:-unknown}
+    local source_loc=$1
+    local target_loc=$2
+    local backup_enabled=$3
+
+    # Get the hash of the file currently at the target (if it exists)
+    local target_hash=$(shasum $target_loc 2>/dev/null | awk '{print $1}')   
+    local source_hash=$(shasum $source_loc | awk '{print $1}')
+
+    if [ "$target_hash" = "$source_hash" ]; then
+        zdbg $referenced_file "Source and target files are identical, skipping"
+        return 0
+    fi
+
+    zdbg $referenced_file "Replacing $target_loc with $source_loc"
+
+    # Backup the target file
+    if [ "$backup_enabled" = "true" ]; then
+        zdbg $referenced_file "Backing up $target_loc to $target_loc.bak"
+        cp -f $target_loc $target_loc.bak
+    fi
+
+    # Replace the target file with the source file
+    cp -f $source_loc $target_loc
+
+    # Check if the replacement was successful
+    if [ $? -ne 0 ]; then
+        zerr $referenced_file "Failed to replace $target_loc with $source_loc"
+        return 1
+    fi
+
+    zdbg $referenced_file "Successfully replaced $target_loc with $source_loc"    
+}

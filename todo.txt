@@ -6,7 +6,9 @@ minimal:
 - brew:ripgrep
 - brew:nvim+lazy
 - brew:jq
-- script: add developer folder to mds blacklist
+- brew:fzf
+- brew:rm-improved
+- script: mds blacklists
 - script: defaults-com -> inspiration https://gist.github.com/brandonb927/3195465/
 
 

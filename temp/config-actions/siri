@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/macos-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+set_pref com.apple.Siri StatusMenuVisible bool false
+set_pref com.apple.Siri VoiceTriggerUserEnabled bool false
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

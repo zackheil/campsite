@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/file-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+typeset ALA_ICON=$ASSETS_DIR/alacritty.icns
+typeset ALA_APP_ICON_FILE=/Applications/Alacritty.app/Contents/Resources/alacritty.icns
+
+has_app Alacritty && {
+    replace_file $ALA_ICON $ALA_APP_ICON_FILE
+}
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

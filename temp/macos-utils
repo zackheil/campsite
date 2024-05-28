@@ -1,0 +1,128 @@
+source $(dirname $(readlink -f $0))/logger
+
+typeset host_uuid=$(ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}')
+
+function set_local_pref() {
+    typeset referenced_file=${FILENAME:-unknown}
+    typeset domain=$HOME/Library/Preferences/$1.plist
+    typeset key=$2
+    typeset type=$3
+    typeset value=$4
+
+    # conditional wrapper to prevent "the domain/default pair of (domain, key) does not exist" error
+    if defaults read "$domain" "$key" &> /dev/null; then
+        typeset current_value=$(defaults read $domain $key)
+    else
+        typeset current_value=""
+    fi
+    
+
+    # coerce value for guard clause below
+    if [ "$type" = "bool" ]; then
+        case "$value" in
+            true) typeset coerced_value=1 ;;
+            false) typeset coerced_value=0 ;;
+        esac
+    else 
+        typeset coerced_value=$value
+    fi
+
+    # Skip if the value is already set
+    if [ "$current_value" = "$coerced_value" ]; then
+        zdbg $referenced_file "Value for [$domain] → [$key] is already set to $value"
+        return
+    fi
+
+    # Log the current state
+    zdbg $referenced_file "Current value for $key: $current_value"
+
+    # Set the new value with type
+    defaults write $domain $key -$type $value
+
+    # Verify if the value changed successfully
+    typeset new_value=$(defaults read $domain $key)
+    if [ "$new_value" = "$value" ]; then
+        zlog $referenced_file "Successfully set [$domain] → [$key] to $value"
+    else
+        zerr $referenced_file "Failed to set [$domain] → [$key] to $value"
+        zdbg $referenced_file "Instead value for [$domain] → [$key]: $new_value"
+        exit 1
+    fi
+}
+
+function set_local_host_pref() {
+    typeset domain=$HOME/Library/Preferences/ByHost/$1.${host_uuid}.plist
+    typeset key=$2
+    typeset type=$3
+    typeset value=$4
+
+    set_local_pref $domain $key $type $value
+}
+
+set_root_pref() {
+
+}
+
+set_pref_dict() {
+    local referenced_file=${FILENAME:-unknown}
+    local domain=$1
+    local key=$2
+    local dict_key=$3
+    local type=$4
+    local value=$5
+
+    # Check if the key exists in the domain
+    if defaults read "$domain" "$key" &> /dev/null; then
+        local current_value=$(defaults read "$domain" "$key" | grep -A1 "$dict_key" | tail -n1 | awk '{print $NF}')
+    else
+        local current_value=""
+    fi
+
+    # Coerce value for guard clause below
+    if [ "$type" = "bool" ]; then
+        case "$value" in
+            true) coerced_value=1 ;;
+            false) coerced_value=0 ;;
+        esac
+    else 
+        coerced_value=$value
+    fi
+
+    # Skip if the value is already set
+    if [ "$current_value" = "$coerced_value" ]; then
+        zdbg $referenced_file "Value for $dict_key in $key is already set to $value"
+        return
+    fi
+
+    # Log the current state
+    zdbg $referenced_file "Current value for $dict_key in $key: $current_value"
+
+    # Set the new value with dict-add
+    defaults write "$domain" "$key" -dict-add "$dict_key" -$type "$value"
+
+    # Verify if the value changed successfully
+    local new_value=$(defaults read "$domain" "$key" | grep -A1 "$dict_key" | tail -n1 | awk '{print $NF}')
+    if [ "$new_value" = "$value" ]; then
+        zlog $referenced_file "Successfully set $dict_key in $key to $value"
+    else
+        zerr $referenced_file "Failed to set $dict_key in $key to $value"
+        zdbg $referenced_file "Instead value for $dict_key in $key: $new_value"
+        exit 1
+    fi
+}
+
+
+# Inherently checks sudo with the operation performed
+check_sudo_and_full_disk_access() {
+    local referenced_file=${FILENAME:-unknown}
+
+    # testing against a spotlight config file since it is protected (as of Sonoma)
+    cat /System/Volumes/Data/.Spotlight-V100/VolumeConfiguration.plist &>/dev/null
+
+    if [[ $? -ne 0 ]]; then
+        zdbg $referenced_file "Failed full disk access check"
+        return 1
+    fi
+
+    zdbg $referenced_file "Passed full disk access check"
+}

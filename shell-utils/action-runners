@@ -1,0 +1,107 @@
+#!/usr/bin/env zsh
+typeset PARENT_DIR="$(dirname $(dirname $(realpath $0)))"
+typeset CONFIG_ACTIONS_SCRIPT_DIR="$PARENT_DIR/config-actions"
+typeset INSTALL_ACTIONS_SCRIPT_DIR="$PARENT_DIR/install-actions"
+typeset FULL_INSTALLS_SCRIPT_DIR="$PARENT_DIR/full-installations"
+typeset ASSETS_DIR="$PARENT_DIR/assets"
+
+# checks to ensure all required directories exist for campsite to run
+function check_campsite_dirs() {
+    if [[ ! -d $CONFIG_ACTIONS_SCRIPT_DIR ]]; then
+        echo "ERROR: Config action script directory not found: $CONFIG_ACTIONS_SCRIPT_DIR"
+        exit 1
+    fi
+
+    if [[ ! -d $INSTALL_ACTIONS_SCRIPT_DIR ]]; then
+        echo "ERROR: Install action script directory not found: $INSTALL_ACTIONS_SCRIPT_DIR"
+        exit 1
+    fi
+
+    if [[ ! -d $FULL_INSTALLS_SCRIPT_DIR ]]; then
+        echo "ERROR: Full installation script directory not found: $FULL_INSTALLS_SCRIPT_DIR"
+        exit 1
+    fi
+
+    if [[ ! -d $ASSETS_DIR ]]; then
+        echo "ERROR: Asset directory not found: $ASSETS_DIR"
+        exit 1
+    fi
+
+    if [[ ! -d $UTILS_DIR ]]; then
+        echo "ERROR: Utils directory not found: $UTILS_DIR"
+        exit 1
+    fi
+}
+
+# usage: campsite_configure <topic>
+function campsite_configure() {
+    if [ ! -f "$CONFIG_ACTIONS_SCRIPT_DIR/$1" ]; then
+        log_err "fn|configure" "The file '$CONFIG_ACTIONS_SCRIPT_DIR/$1' does not exist. Skipping."
+    else
+        zsh "$CONFIG_ACTIONS_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
+    fi
+}
+
+# usage: campsite_install <topic>
+function campsite_install() {
+    if [ ! -f "$INSTALL_ACTIONS_SCRIPT_DIR/$1" ]; then
+        log_err "fn|install" "The file '$INSTALL_ACTIONS_SCRIPT_DIR/$1' does not exist. Skipping."
+    else
+        zsh "$INSTALL_ACTIONS_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
+    fi
+}
+
+# Resolves OS type and version. Runs curated script. Falls back to previous version if not found.
+# usage: run_installation <type>
+function run_installation() {
+    typeset -r SELECTED_INSTALLATION=$1
+    typeset -r OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+
+    # use different commands to determine OS major version
+    case $OS_TYPE in
+    linux)
+        if [ -f /etc/os-release ]; then
+            typeset -i OS_VERSION=$(grep -oP 'VERSION_ID="\K[^"]+' /etc/os-release)
+        elif [ -f /etc/lsb-release ]; then
+            typeset -i OS_VERSION=$(grep -oP 'DISTRIB_RELEASE=\K[^"]+' /etc/lsb-release)
+        else
+            typeset -i OS_VERSION=$(uname -r | cut -d'.' -f1)
+        fi
+        ;;
+    darwin)
+        typeset -i OS_VERSION=$(sw_vers -productVersion | cut -d'.' -f1)
+        ;;
+    *)
+        log_err "Unsupported OS: $OS_TYPE"
+        return 1
+        ;;
+    esac
+
+    log_dbg "fn|run_installation" "detected OS=$OS_TYPE Version=$OS_VERSION Installation=$SELECTED_INSTALLATION"
+
+    typeset INITIAL_INSTALL_SCRIPT_NAME="${SELECTED_INSTALLATION}-${OS_TYPE}-${OS_VERSION}"
+    typeset INSTALL_SCRIPT_NAME="$INITIAL_INSTALL_SCRIPT_NAME"
+    log_dbg "fn|run_installation" "Trying to find install for $INSTALL_SCRIPT_NAME"
+
+    # while a file with the current OS version is not found, decrement OS and try again
+    while [ ! -f "$FULL_INSTALLS_SCRIPT_DIR/$INSTALL_SCRIPT_NAME" ]; do
+        typeset OS_VERSION=$((OS_VERSION - 1))
+        if [ $OS_VERSION -eq 0 ]; then
+            log_err "fn|run_installation" "No installation script found for $OS_TYPE-$OS_VERSION"
+            return 1
+        fi
+        typeset INSTALL_SCRIPT_NAME="${SELECTED_INSTALLATION}-${OS_TYPE}-${OS_VERSION}"
+        log_dbg "fn|run_installation" "Trying to find install for $INSTALL_SCRIPT_NAME"
+    done
+
+    # warn if initial script doesn't match the found script
+    if [ "$INITIAL_INSTALL_SCRIPT_NAME" != "$INSTALL_SCRIPT_NAME" ]; then
+        log_warn "fn|run_installation" "No installation script found for '$INITIAL_INSTALL_SCRIPT_NAME'. Using '$INSTALL_SCRIPT_NAME' as a fallback."
+    fi
+
+    log_dbg "fn|run_installation" "Found file '$INSTALL_SCRIPT_NAME'. Running..."
+    zsh "$FULL_INSTALLS_SCRIPT_DIR/$INSTALL_SCRIPT_NAME" "$SCRIPT_DEBUG" || {
+        log_err "fn|run_installation" "Failed to execute script: '$INSTALL_SCRIPT_NAME'"
+        return 1
+    }
+}

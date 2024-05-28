@@ -1,0 +1,21 @@
+#!/usr/bin/env zsh
+
+typeset -r SCRIPT_DEBUG="$1"
+typeset -r FILENAME="installation|$(basename $0)"
+typeset ASSETS_DIR="$(dirname $(dirname $(realpath $0)))/assets"
+typeset UTILS_DIR="$(dirname $(dirname $(realpath $0)))/shell-utils"
+
+source "$UTILS_DIR/logger"
+source "$UTILS_DIR/macos-utils"
+source "$UTILS_DIR/action-runners"
+
+
+log_dbg "$FILENAME" "Starting Sonoma minimal installation"
+
+
+campsite_install "homebrew"
+
+
+
+log_dbg "$FILENAME" "Finishing script"
+log_ok "Set up a minimal camp on macOS Sonoma! 🏕️"

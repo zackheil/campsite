@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/file-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+has_cli node && mkdir -p $NODE_REPL_HISTORY:h
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

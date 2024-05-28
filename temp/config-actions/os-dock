@@ -1,0 +1,42 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/macos-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+# set_pref com.apple.dock tilesize int 45
+# set_pref com.apple.dock orientation string bottom
+# set_pref com.apple.dock show-recents bool false
+# set_pref com.apple.dock autohide bool true
+# set_pref com.apple.dock autohide-delay float 0
+# set_pref com.apple.dock autohide-time-modifier float 0.15
+# killall Dock
+
+# Read the persistent-apps array from NSGlobalDomain
+# dock_apps=$(defaults read com.apple.dock persistent-apps)
+
+
+# Get the lines containing _CFURLString values
+# url_lines=$(echo "$dock_apps" | grep -Eo '"_CFURLString" = ".*";')
+# echo $url_lines
+
+# Loop through each line
+# while IFS= read -r line; do
+#     # Extract _CFURLString value using awk
+#     url=$(echo "$line" | awk -F'"' '{print $4}')
+
+#     # Output the information
+#     echo "URL: $url"
+#     echo "-----------------------------------"
+# done <<< "$url_lines"
+
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

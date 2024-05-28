@@ -1,52 +1,40 @@
 #!/usr/bin/env zsh
 
-typeset -r CONFIG_ACTIONS_SCRIPT_DIR="$(dirname $(readlink -f $0))/config-actions"
-typeset -r INSTALL_ACTIONS_SCRIPT_DIR="$(dirname $(readlink -f $0))/install-actions"
-typeset -r ASSETS_DIR="$(dirname $(readlink -f $0))/assets"
-
-typeset -r INITIAL_RUN="$1"
+typeset -r UTILS_DIR="$(dirname $(readlink -f $0))/shell-utils"
 typeset -r SCRIPT_DEBUG="true"
+typeset -r PREV_CONTEXT_FILE="$HOME/.local/shell-context/campsite-installation-type"
 
-# validate locations before doing anything
-if [[ ! -d $CONFIG_ACTIONS_SCRIPT_DIR ]]; then
-    echo "ERROR: Config action script directory not found: $CONFIG_ACTIONS_SCRIPT_DIR"
-    exit 1
-fi
+# parse command line arguments
+case "$1" in
+    --minimal)
+        typeset -gr FORCE_INSTALL_TYPE="minimal"
+        ;;
+    --comfortable)
+        typeset -gr FORCE_INSTALL_TYPE="comfortable"
+        ;;
+    --full)
+        typeset -gr FORCE_INSTALL_TYPE="full"
+        ;;
+    initial_run)
+        typeset -gr INIT_FLAG="true"
+        ;;
+    "")
+        ;;
+    *)
+        echo "Usage: $0 {--minimal|--comfortable|--full}"
+        exit 1
+        ;;
+esac
 
-if [[ ! -d $INSTALL_ACTIONS_SCRIPT_DIR ]]; then
-    echo "ERROR: Install action script directory not found: $INSTALL_ACTIONS_SCRIPT_DIR"
-    exit 1
-fi
+# validate directory structure for campsite
+source "$UTILS_DIR/action-runners"
+check_campsite_dirs || exit 1
 
-if [[ ! -d $ASSETS_DIR ]]; then
-    echo "ERROR: Asset directory not found: $ASSETS_DIR"
-    exit 1
-fi
+source "$UTILS_DIR/logger"
 
-
-source "$ASSETS_DIR/logger"
-
-# usage: configure <topic>
-function configure() {
-    if [ ! -f "$CONFIG_ACTIONS_SCRIPT_DIR/$1" ]; then
-        log_err "The file '$CONFIG_ACTIONS_SCRIPT_DIR/$1' does not exist. Skipping."
-    else
-        zsh "$CONFIG_ACTIONS_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
-    fi
-}
-
-# usage: install <topic>
-function install() {
-    if [ ! -f "$INSTALL_ACTIONS_SCRIPT_DIR/$1" ]; then
-        log_err "The file '$INSTALL_ACTIONS_SCRIPT_DIR/$1' does not exist. Skipping."
-    else
-        zsh "$INSTALL_ACTIONS_SCRIPT_DIR/$1" $SCRIPT_DEBUG || log_err "Failed to execute script: '$1'"
-    fi
-}
-
-# on initial run, it is run with sudo - keep that alive
-if [ "$INITIAL_RUN" ]; then
-    log_dbg "Initial run detected. Running with sudo."
+# If kicked-off with the init script, it is run with sudo. Keep that alive
+if [ $INIT_FLAG ]; then
+    log_dbg " 🏕️ " "Initial run detected. Running with sudo loop."
     sudo -v
     while true; do
         sudo -n true
@@ -55,4 +43,58 @@ if [ "$INITIAL_RUN" ]; then
     done 2>/dev/null &
 fi
 
-configure "world"
+# determine installation
+typeset -x PREV_INSTALL_TYPE=$(cat $PREV_CONTEXT_FILE 2>/dev/null)
+
+# If a previous installation is detected, and there is no override flag, just run existing installation again
+if [[ -n $PREV_INSTALL_TYPE && -z $FORCE_INSTALL_TYPE ]]; then
+    log_warn " 🏕️ " "Previous installation detected. Rerunning installation: $PREV_INSTALL_TYPE"
+    log_warn " 🏕️ " "To override, run campsite with the installation you want (--minimal, --comfortable, --full)"
+    log_warn " 🏕️ " "Note - this will not revert an existing higher-level installation"
+
+# If a force is detected, run the installation with the forced type
+elif [[ -n $FORCE_INSTALL_TYPE ]]; then
+    log_warn " 🏕️ " "Forcing installation type: $FORCE_INSTALL_TYPE"
+    log_warn " 🏕️ " "Note - this will not revert an existing higher-level installation"
+
+# If the init script was used (no flag choices), and no previous installation is detected, prompt for installation type
+elif [[ -z $PREV_INSTALL_TYPE && $INIT_FLAG ]]; then
+    log_warn "No previous installation detected. Please choose an installation type:"
+    log_warn " - minimal"
+    log_warn " - comfortable"
+    log_warn " - full"
+    log_warn "Type the exact installation you would like."
+
+    read -r INSTALL_PROMPT
+    case $INSTALL_PROMPT in
+        minimal)
+            typeset -gr SHOULD_INSTALL="minimal"
+            ;;
+        comfortable)
+            typeset -gr SHOULD_INSTALL="comfortable"
+            ;;
+        full)
+            typeset -gr SHOULD_INSTALL="full"
+            ;;
+        *)
+            log_err " 🏕️ " "Invalid installation type. Exiting."
+            exit 1
+            ;;
+    esac
+    
+else 
+    log_err " 🏕️ " "error - how did you get here?"
+    exit 1
+fi
+
+typeset -r INSTALLATION_TYPE=${SHOULD_INSTALL:-${FORCE_INSTALL_TYPE:-$PREV_INSTALL_TYPE}}
+
+log_dbg " 🏕️ " "Saving $INSTALLATION_TYPE back to context file"
+echo $INSTALLATION_TYPE > $PREV_CONTEXT_FILE
+
+log_dbg " 🏕️ " "Running installation for $INSTALLATION_TYPE"
+
+run_installation $INSTALLATION_TYPE || {
+    log_err " 🏕️ " "Installation failed. Exiting."
+    exit 1
+}

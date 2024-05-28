@@ -1,18 +1,19 @@
 #!/usr/bin/env zsh
 
 typeset -r SCRIPT_DEBUG="$1"
-typeset -r FILENAME="$(basename $0)"
+typeset -r FILENAME="config|$(basename $0)"
 typeset ASSETS_DIR="$(dirname $(dirname $(realpath $0)))/assets"
 typeset UTILS_DIR="$(dirname $(dirname $(realpath $0)))/shell-utils"
 
 source "$UTILS_DIR/logger"
+source "$UTILS_DIR/macos-utils"
 
 
 log_dbg "$FILENAME" "Starting script"
 
 
-echo "Hello, configure!"
+# actions here
 
 
 log_dbg "$FILENAME" "Finishing script"
-log_ok "$FILENAME" "Setup complete!"
+log_ok "$FILENAME" "Configuration complete!"

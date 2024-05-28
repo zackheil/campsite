@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/macos-utils
+
+
+zdbg $FILENAME "Starting script"
+
+
+set_pref NSGlobalDomain AppleShowAllExtensions bool true
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

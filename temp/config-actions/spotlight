@@ -1,0 +1,59 @@
+#!/usr/bin/env zsh
+
+SCRIPT_DEBUG=$1
+ASSETS_DIR=$(dirname $(dirname $(realpath $0)))/assets
+FILENAME=$(basename $0)
+source $ASSETS_DIR/logger
+source $ASSETS_DIR/macos-utils
+
+set_blacklist() {
+    local PlistBuddy="/usr/libexec/PlistBuddy"
+    local spotlight_config="/System/Volumes/Data/.Spotlight-V100/VolumeConfiguration.plist"
+    local spotlight_service="com.apple.metadata.mds"
+
+    # Define your list of paths to be blacklisted
+    blacklist=(
+        "${HOME}/Developer/Repositories"
+        "${HOME}/Developer/personal"
+        "${HOME}/Developer/work"
+        "${HOME}/Developer/oss"
+    )
+
+    # Execute the command to get the current spotlight blacklist
+    val=$($PlistBuddy -c "print :Exclusions:" $spotlight_config)
+
+    # Extract paths from the output and put them into an array
+    spotlight_paths=($(echo $val | grep -oE '/[^ ]+'))
+
+    # Check if each path in the blacklist is present in the spotlight_paths array
+    for path in $blacklist; do
+        zdbg $FILENAME "Checking if '$path' is in spotlight blacklist"
+
+        if [[ ! " ${spotlight_paths[@]} " =~ " $path " ]]; then
+            zdbg $FILENAME "Drift detected - '$path' is not in spotlight blacklist"
+            $PlistBuddy -c "clear :Exclusions:" $spotlight_config
+
+            for path_to_add in $blacklist; do
+                zdbg $FILENAME "Adding '$path_to_add' to spotlight blacklist"
+                $PlistBuddy -c "add :Exclusions: string $path_to_add" $spotlight_config
+            done
+
+            zdbg $FILENAME "Restarting spotlight service. (logout required to see changes in prefs)"
+            /bin/launchctl stop $spotlight_service && /bin/launchctl start $spotlight_service
+            zlog $FILENAME "Updated spotlight blacklist"
+            return
+        fi
+    done
+    zdbg $FILENAME "Spotlight blacklist is already up to date."
+}
+
+
+zdbg $FILENAME "Starting script"
+
+check_sudo_and_full_disk_access && set_blacklist || {
+    zwarn $FILENAME "Skipping spotlight blacklist config. Can't access"
+}
+
+
+zdbg $FILENAME "Finishing script"
+zlog "Setup complete for $FILENAME"

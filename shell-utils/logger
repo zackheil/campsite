@@ -1,0 +1,45 @@
+# each logger fn supports 2 args: 
+# <context> <message>
+# <message> (context is optional)
+# All are printed to stderr to not conflict with stdout usage in functions
+
+# If run in sudo context, colors won't exist from rc
+typeset -g LOG_SH_RED=${sh_red:-$(tput setaf 1)}
+typeset -g LOG_SH_GREEN=${sh_green:-$(tput setaf 2)}
+typeset -g LOG_SH_YELLOW=${sh_yellow:-$(tput setaf 3)}
+typeset -g LOG_SH_MAGENTA=${sh_magenta:-$(tput setaf 5)}
+typeset -g LOG_SH_RESET=${sh_reset:-$(tput sgr0)}
+
+function log_dbg() {
+    if [ "$SCRIPT_DEBUG" ]; then
+        if [ "$2" ]; then
+            echo "${LOG_SH_YELLOW}[$1]: $2${LOG_SH_RESET}" >&2
+        else
+            echo "${LOG_SH_YELLOW}$@${sh_reset}" >&2
+        fi
+    fi
+}
+
+function log_ok() {
+    if [ "$2" ]; then
+        echo "${LOG_SH_GREEN}[$1]: $2${LOG_SH_RESET}" >&2
+    else
+        echo "${LOG_SH_GREEN}$@${LOG_SH_RESET}" >&2
+    fi
+}
+
+function log_warn() {
+    if [ "$2" ]; then
+        echo "${LOG_SH_MAGENTA}[$1]: $2${LOG_SH_RESET}" >&2
+    else
+        echo "${LOG_SH_MAGENTA}$@${LOG_SH_RESET}" >&2
+    fi
+}
+
+function log_err() {
+    if [ "$2" ]; then
+        echo "${LOG_SH_RED}[$1]: $2${LOG_SH_RESET}" >&2
+    else
+        echo "${LOG_SH_RED}$@${LOG_SH_RESET}" >&2
+    fi
+}

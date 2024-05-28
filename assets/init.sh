@@ -39,6 +39,23 @@ fi
 # Start main script
 chmod +x "$HOME/.local/campsite/run"
 
+clear
+echo "
+           (                 ,&&&.
+            )                .,.&&
+           (  (              \=__/
+               )             ,'-'.
+         (    (  ,,      _.__|/ /|
+          ) /\ -((------((_|___/ |
+        (  // | (`'      ((  `'--|
+      _ -.;_/ \\--._      \\ \-._/.
+     (_;-// | \ \-'.\    <_,\_\`--'|
+     ( `.__ _  ___,')      <_,-'__,'
+      `'(_ )_)(_)_)'
+================================================
+
+"
+
 echo "The following actions will require sudo permissions and a terminal with full-disk access."
 echo "Both conditions will need to be met for the machine setup to run successfully."
 echo "If needed, CTRL+C now and go give the terminal full-disk access in the System Preferences."
