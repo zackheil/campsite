@@ -1,0 +1,11 @@
+this_file="${${(%):-%N}##*/}" 
+
+#if ; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+
+    export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
+
+#else
+ #   zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+#fi
+

@@ -1,0 +1,11 @@
+this_file="${${(%):-%N}##*/}" 
+
+if command -v adb >/dev/null 2>&1; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+    export ANDROID_HOME="${XDG_DATA_HOME}/android"
+    export ANDROID_USER_HOME="${XDG_DATA_HOME}/android"
+    export GRADLE_USER_HOME="${XDG_DATA_HOME}/gradle"
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi

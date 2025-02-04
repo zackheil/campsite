@@ -1,0 +1,40 @@
+this_file="${${(%):-%N}##*/}" 
+
+if [[ "$OSTYPE" == "darwin"* ]]; then                                 
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+    # quick access to the Developer related directories
+    alias dev="cd ~/Developer"
+    alias work="cd ~/Developer/work"
+    alias pers="cd ~/Developer/personal"
+    alias oss="cd ~/Developer/oss"
+
+    # Activate quicklook from terminal
+    ql() { qlmanage -p "$*" >& /dev/null; }                    
+
+    # Quickly open whatever you are looking at ($pwd) in Finder
+    alias f="open -a Finder ./"                 			   
+
+    # Activate spotlight from Terminal
+    spotlight() { mdfind "kMDItemDisplayName == "$@"wc"; } 
+
+    # Will take whatever Finder window you have open and cd to it in Terminal
+    cdf () {             
+        currFolderPath=$( /usr/bin/osascript <<EOT
+            tell application "Finder"
+                try
+            set currFolder to (folder of the front window as alias)
+                on error
+            set currFolder to (path to desktop folder as alias)
+                end try
+                POSIX path of currFolder
+            end tell
+EOT
+        )
+        echo "cd to \"$currFolderPath\""
+        cd "$currFolderPath"
+    }
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi
+

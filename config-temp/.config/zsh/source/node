@@ -1,0 +1,112 @@
+this_file="${${(%):-%N}##*/}"
+
+# using homebrew location to determine node existence. nvm is slow
+if command ls "$(brew --prefix)"/opt | grep -q "node"; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+
+    export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node/node_repl_history"
+    export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
+    export NPM_CONFIG_TMP="${XDG_RUNTIME_DIR}/npm"
+    export NPM_CONFIG_USERCONFIG="${XDG_DATA_HOME}/npm/config"
+
+
+    nv() {
+        # Handle the --info flag
+        if [[ $1 == "--info" ]]; then
+            echo "Installed Node.js versions:"
+            brew list --verbose --versions | grep -E "^node@"
+            return 0
+        fi
+
+        # Get the Homebrew prefix
+        local brew_prefix
+        brew_prefix=$(brew --prefix)
+
+        # Check for installed Node.js versions
+        local node_versions
+        node_versions=$(command ls "$brew_prefix"/opt | grep -E "^node@")
+
+        if [[ -z "$node_versions" ]]; then
+            echo "No Node.js versions installed via Homebrew."
+            return 1
+        fi
+
+        # Get the currently linked Node.js version (major version only)
+        local current_version
+        if command -v node &>/dev/null; then
+            current_version=$(node -v | sed -E 's/^v([0-9]+).*/\1/')  # Extract major version
+        else
+            current_version="None"
+        fi
+
+        # Format options for the menu
+        local options=()
+        local version
+        for version in ${(f)node_versions}; do
+            if [[ $version == "node@$current_version" ]]; then
+                options+=("$version (currently linked)")
+            else
+                options+=("$version")
+            fi
+        done
+
+        # Display menu
+        echo "Available Node.js versions:"
+        for i in {1..${#options[@]}}; do
+            echo "  $i) ${options[$i]}"
+        done
+
+        # Prompt the user for a choice
+        echo -n "Select a version to link (or press Enter to cancel): "
+        read selection
+
+        # Cancel if no selection
+        if [[ -z $selection ]]; then
+            echo "No version selected."
+            return 0
+        fi
+
+        # Validate selection
+        if ! [[ $selection =~ ^[0-9]+$ ]] || ((selection < 1 || selection > ${#options[@]})); then
+            echo "Invalid selection."
+            return 1
+        fi
+
+        # Extract version from choice
+        local selected_version
+        selected_version=$(echo "${options[$selection]}" | awk '{print $1}')
+
+        # Link the selected version
+        echo "Linking $selected_version..."
+        brew unlink node &>/dev/null  
+        if brew link --overwrite "$selected_version" &>/dev/null; then
+            echo "$selected_version has been linked successfully."
+            echo "Current Node.js version: $(node -v)"
+        else
+            echo "Failed to link $selected_version."
+            return 1
+        fi
+    }
+
+    nuke_modules() {
+	[ "$1" = "--force" ] || {
+	    find . -name "node_modules" -type d -prune | xargs du -chs;
+	    echo "Are you sure you want to delete all node_module directories recursively from this directory? [y/n]";
+
+	    while true; do
+		read yn
+		case $yn in
+		    [Yy]* ) break;;
+		    [Nn]* ) return;;
+		    * ) echo "Please answer Y/y or N/n.";;
+		esac
+	    done
+	}
+
+	echo "${sh_red}Deleting...${sh_normal}";
+	find . -name "node_modules" -type d -prune -exec rm -rf '{}' +;
+	echo "${sh_green}Done!${sh_normal}";
+    }
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi

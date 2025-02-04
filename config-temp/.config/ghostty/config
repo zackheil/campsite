@@ -1,0 +1,35 @@
+# window
+title = " "
+window-colorspace = display-p3
+window-height = 10000
+window-width = 10000
+macos-titlebar-style = hidden
+macos-titlebar-proxy-icon = hidden
+
+
+# basic appearance
+font-family = CommitMono Nerd Font Mono
+font-family-bold = CommitMono Nerd Font Mono Bold
+font-family-italic = CommitMono Nerd Font Mono Italic
+font-family-bold-italic = CommitMono Nerd Font Mono Bold Italic
+
+cursor-style = block
+theme = light:zack-light, dark:zack-dark
+background-opacity = 0.97
+
+
+# icon appearance
+macos-icon = custom-style
+macos-icon-ghost-color = ff6e00
+macos-icon-screen-color = 000000
+macos-icon-frame = aluminum
+
+
+# functionality
+cursor-click-to-move = true
+mouse-hide-while-typing = true
+macos-option-as-alt = true
+macos-auto-secure-input = true
+macos-secure-input-indication = true
+desktop-notifications = true
+

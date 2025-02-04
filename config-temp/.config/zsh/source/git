@@ -1,0 +1,91 @@
+this_file="${${(%):-%N}##*/}" 
+
+if command -v git >/dev/null 2>&1; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+    # Function to find and add SSH keys to the agent
+    add_git_keys() {
+        local git_key_dir="$XDG_DATA_HOME/git"
+        local agent_keys
+        agent_keys=$(ssh-add -l 2>&1)  # Get the list of keys currently in the agent
+
+	whence -w zlog_debug >/dev/null && zlog_debug "git:add_git_keys" "Using key store at: [$git_key_dir]." 
+        # Iterate through public keys in the directory
+        for pubkey in "$git_key_dir"/*.pub(N); do
+            # Ensure the file exists
+            [[ -e "$pubkey" ]] || { whence -w zlog_debug >/dev/null && zlog_debug "git:add_git_keys" "No keys found in [$git_key_dir]."; break; }
+
+            # Infer private key from the public key name
+            local privkey="${pubkey%.pub}"
+
+            # Check if the private key exists
+            if [[ ! -f "$privkey" ]]; then
+	        whence -w zlog_debug >/dev/null && zlog_debug "git:add_git_keys" "Skipping [$pubkey] (private key not found)."
+                continue
+            fi
+
+            # Get the fingerprint of the public key using ssh-keygen (no awk needed)
+            pubkey_fingerprint=$(ssh-keygen -lf "$pubkey" 2>/dev/null)
+
+            # Check if the key's fingerprint is already in the agent
+            if [[ "$agent_keys" == *"$pubkey_fingerprint"* ]]; then
+	        whence -w zlog_debug >/dev/null && zlog_debug "git:add_git_keys" "Key [${${privkey}##*/}] already loaded in SSH agent."
+                continue
+            fi
+
+            # Add the private key to the SSH agent
+            if ssh-add "$privkey" >/dev/null 2>&1; then
+                whence -w zlog_debug >/dev/null && zlog_debug "git:add_git_keys" "Successfully added [${${privkey}##*/}] to SSH agent."
+            else
+                whence -w zlog_debug >/dev/null && zlog_debug "git:add_git_keys" "Failed to add [${${privkey}##*/}] to SSH agent."
+            fi
+        done
+        unset pubkey_fingerprint
+    }
+
+    # custom git command to execute the clone subcommand with the ssh config prefix
+    git() {
+	# only act on clone for this custom command
+	if [[ "$1" == "clone" ]]; then
+	    local expanded_pwd=$(pwd | sed "s|^~|$HOME|")
+            [[ "$expanded_pwd" != */ ]] && expanded_pwd="${expanded_pwd}/"
+	    local gitconfig=$(git config --global --list)
+	    local includeIfLines=$(echo $gitconfig | grep "includeif")
+	    local sshLine=$(echo $gitconfig | grep "sshcommand")
+
+            local normalizedPaths=()
+            while IFS= read -r line; do
+                # Extract the relevant path and normalize
+                local cleanPath=$(echo "$line" | awk -F ':' '{print $2}' | awk -F '.path' '{print $1}' | sed "s|^~|$HOME|")
+                normalizedPaths+=("$cleanPath")
+            done <<< "$includeIfLines"
+
+	    # Step 2: Sort paths by length (longest first)
+            normalizedPaths=($(for path in "${normalizedPaths[@]}"; do
+                echo "$path"
+            done | awk '{ print length, $0 }' | sort -n -r | cut -d ' ' -f2-))
+
+            # Step 3: Check if expanded_pwd matches any candidateIncludePath
+            for candidateIncludePath in "${normalizedPaths[@]}"; do
+                if [[ "$expanded_pwd" == "$candidateIncludePath"* ]]; then
+		    local strippedPath="${candidateIncludePath#$HOME/}"
+		    local targetConfig=$(echo $includeIfLines | grep $strippedPath | awk -F '=' '{print $2}' | sed "s|^~|$HOME|")
+		    sshLine=$(command cat $targetConfig | grep -i "sshcommand")
+                    break  # Exit after the first match
+                fi
+            done
+        
+            local ssh_cmd=$(echo "$sshLine" | awk -F'="*' '{print $2}' | sed 's/"//g')
+	    echo "ssh: $ssh_cmd"
+	    GIT_SSH_COMMAND=$ssh_cmd command git "$@"
+	else
+	    command git "$@"
+	fi
+    }
+
+    # Run the key addition function on shell init
+    add_git_keys
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi
+

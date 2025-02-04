@@ -1,0 +1,69 @@
+this_file="${${(%):-%N}##*/}" 
+zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+
+# Add case-insensitive tab completion (lower -> capital autofix)
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+# allow comments from copy/pasted code blocks
+setopt interactivecomments
+
+# quick reload of zsh config
+alias reload="source $XDG_CONFIG_HOME/zsh/.zshrc 1"
+alias rd="source $XDG_CONFIG_HOME/zsh/.zshrc 1 --debug"
+
+# zsh files created in ~ by default:
+HISTFILE=$XDG_STATE_HOME/zsh/history
+SHELL_SESSION_DIR=$XDG_STATE_HOME/zsh/sessions
+SHELL_SESSION_FILE=$SHELL_SESSION_DIR/$TERM_SESSION_ID
+
+# priority of the directory replacement
+typeset -a directory_order=(
+    "${HOME}/Library/Mobile Documents/com~apple~CloudDocs"
+    "${HOME}/Developer/personal"
+    "${HOME}/Developer/work"
+    "${HOME}/Developer/oss"
+    "${HOME}/Developer"
+    "${HOME}/Obsidian"
+    "${HOME}"
+)
+
+typeset -A replacement_map=(
+    ["$HOME"]="%F{yellow}"
+    ["$HOME/Developer"]="%F{green}󱁤"
+    ["$HOME/Developer/work"]="%F{green}󰦑󱁤"
+    ["$HOME/Developer/personal"]="%F{green}󱁤"
+    ["$HOME/Developer/oss"]="%F{green}󱁤"
+    ["$HOME/Obsidian"]="%F{magenta}"
+    ["$HOME/Library/Mobile Documents/com~apple~CloudDocs"]="%F{blue}󰀸"
+)
+
+custom_path() {
+    local cwd="$PWD"
+
+    # Iterate over the directory order
+    for dir in "${directory_order[@]}"; do
+        if [[ "$cwd" == "$dir"* ]]; then
+            local prefix="${replacement_map[$dir]}"
+            cwd="${cwd//$dir/$prefix}"
+        fi
+    done
+
+    echo "$cwd"
+}
+
+set_left_prompt() {
+    local user="%n"
+    local mach="%m󰀵"
+
+    local user_seg="%F{$orange}%B${user}%b%f"
+    local mach_seg="%F{$cyan}%B${mach}%b%f"
+    local  dir_seg="$(custom_path)%f"
+
+    PROMPT="${user_seg}${mach_seg} | ${dir_seg} "
+}
+
+precmd() {
+    set_left_prompt
+}

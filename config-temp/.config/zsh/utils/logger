@@ -1,0 +1,51 @@
+# each logger fn supports 2 args:
+# <context> <message>
+# <message> (context is optional)
+
+# If run in some sudo context, colors won't exist from rc
+sh_red=${sh_red:-$(tput setaf 1)}
+sh_green=${sh_green:-$(tput setaf 2)}
+sh_yellow=${sh_yellow:-$(tput setaf 3)}
+sh_magenta=${sh_magenta:-$(tput setaf 5)}
+sh_normal=${sh_normal:-$(tput sgr0)}
+
+zlog_debug() {
+    if [ "$SCRIPT_DEBUG" ]; then
+        if [ "$2" ]; then
+            echo -e "${sh_yellow}[debug|$1]: $2${sh_reset}"
+        else
+            echo -e "${sh_yellow}[debug]: $@${sh_reset}"
+        fi
+    fi
+}
+
+zlog_success() {
+    if [ "$2" ]; then
+        echo -e "${sh_green}[$1]: $2${sh_reset}"
+    else
+        echo -e "${sh_green}$@${sh_reset}"
+    fi
+}
+
+zlog_warning() {
+    if [ "$2" ]; then
+        echo -e "${sh_magenta}[$1]: $2${sh_reset}"
+    else
+        echo -e "${sh_magenta}$@${sh_reset}"
+    fi
+}
+
+zlog_error() {
+    if [ "$2" ]; then
+        echo -e "${sh_red}[$1]: $2${sh_reset}"
+    else
+        echo -e "${sh_red}$@${sh_reset}"
+    fi
+}
+
+zlog_destroy() {
+    unset -f zlog_debug
+    unset -f zlog_success
+    unset -f zlog_warning
+    unset -f zlog_error
+}

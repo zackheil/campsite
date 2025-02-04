@@ -1,0 +1,68 @@
+this_file="${${(%):-%N}##*/}" 
+
+if command -v tmux >/dev/null 2>&1; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+    tmain() {
+        if [ -n "$TMUX" ]; then
+            # If inside tmux, check if already in 'main' session
+            current_session=$(tmux display-message -p '#S')
+            if [ "$current_session" = "main" ]; then
+                echo "Already in the 'main' session."
+                return
+            fi
+            # Detach and switch to 'main' session
+            tmux switch-client -t main 2>/dev/null || tmux new-session -d -s main && tmux switch-client -t main
+        else
+            # If not in tmux, attach to 'main' or create it
+            if tmux has-session -t main 2>/dev/null; then
+                tmux attach-session -t main
+            else
+                tmux new-session -s main
+            fi
+        fi
+    }
+
+
+    tside() {
+        if [ -n "$TMUX" ]; then
+            # If inside tmux, check if already in 'side' session
+            current_session=$(tmux display-message -p '#S')
+            if [ "$current_session" = "side" ]; then
+                echo "Already in the 'side' session."
+                return
+            fi
+            # Detach and switch to 'side' session
+            tmux switch-client -t side 2>/dev/null || tmux new-session -d -s side && tmux switch-client -t side
+        else
+            # If not in tmux, attach to 'side' or create it
+            if tmux has-session -t side 2>/dev/null; then
+                tmux attach-session -t side
+            else
+                tmux new-session -s side
+            fi
+        fi
+    }
+
+    tdngr() {
+        if [ -n "$TMUX" ]; then
+            # If inside tmux, check if already in 'danger' session
+            current_session=$(tmux display-message -p '#S')
+            if [ "$current_session" = "danger" ]; then
+                echo "Already in the 'danger' session."
+                return
+            fi
+            # Detach and switch to 'danger' session
+            tmux switch-client -t danger 2>/dev/null || tmux new-session -d -s danger && tmux switch-client -t danger 
+        else
+            # If not in tmux, attach to 'danger' or create it
+            if tmux has-session -t danger 2>/dev/null; then
+                tmux attach-session -t danger 
+            else
+                tmux new-session -s danger 
+            fi
+        fi
+    }
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi

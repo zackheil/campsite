@@ -1,0 +1,41 @@
+this_file="${${(%):-%N}##*/}"
+
+if command -v fzf >/dev/null 2>&1; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    eval "$(fzf --zsh)"
+
+    if command -v fd >/dev/null 2>&1; then
+	zlog_debug $this_file "fd detected - applying overrides for fzf to utilize it"
+
+	export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+	export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+	export FZF_ALT_C_COMMAND="fd —-type=d --hidden --strip-cwd-prefix --exclude .git"
+
+	# override ** completion to use fd (for files and directories, respectively)
+	_fzf_compgen_path() {
+	    fd --hidden --exclude .git . "$1"
+	}
+	_fzf_compgen_dir() {
+	    fd --type=d --hidden --exclude .git . "$1"
+	}
+    fi
+
+    if command -v bat >/dev/null 2>&1; then
+	zlog_debug $this_file "bat detected - applying overrides for fzf to utilize it"
+
+        export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always --line-range :500 {}'"
+    fi
+
+    if [[ -d "$XDG_DATA_HOME/zsh/fzf-git.sh" ]]; then
+	zlog_debug $this_file "fzf-git detected - applying overrides for fzf to utilize it"
+
+	source "$XDG_DATA_HOME/zsh/fzf-git.sh/fzf-git.sh"
+    fi
+
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi
+
+
+
+

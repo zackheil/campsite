@@ -1,0 +1,64 @@
+#!/user/bin/env zsh
+generate_git_key() {
+    local type=""
+    local email=""
+    local key=""
+
+    while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --type)
+        type="$2"
+        shift 2
+        ;;
+        --email)
+        email="$2"
+        shift 2
+        ;;
+        --key)
+        key="$2"
+        shift 2
+        ;;
+        *)
+        echo "Unknown option: $1"
+        return 1
+        ;;
+    esac
+    done
+
+    if [[ -z "$type" || -z "$email" || -z "$key" ]]; then
+        echo "Usage: generate_git_key --type (work|personal) --email (email) --key (authentication|sign)"
+        return 1
+    fi
+
+    local keystore_dir="$XDG_DATA_HOME/git"
+    mkdir -p $keystore_dir
+
+    local key_location=""
+    local config_location=""
+    local config_contents=""
+
+    if [[ "$key" == "authentication" ]]; then
+        key_location="$XDG_DATA_HOME/git/$type-github-$key-key"
+        config_location="$XDG_DATA_HOME/git/auth-$type-ssh-config"
+        config_contents="Host *\n    HostName github.com\n    IdentityFile $key_location\n    IdentitiesOnly yes"
+
+        ssh-keygen -t ed25519 -C $email -f $key_location -N "" -q
+        chmod 600 $key_location
+        chmod 644 $key_location.pub
+
+        echo $config_contents > $config_location
+        echo "Add the following to GitHub's SSH key store for authentication: $(cat $key_location.pub)"
+    else
+        key_location="$XDG_DATA_HOME/git/$type-git-commit-$key-key"
+        config_location="$XDG_DATA_HOME/git/$type-git-$key-key-allowed-signers"
+
+        ssh-keygen -t ed25519 -C $email -f $key_location -N "" -q
+        chmod 600 $key_location
+        chmod 644 $key_location.pub
+
+        config_contents=$(awk '{ print $3 " " $1 " " $2 }' $key_location.pub)
+
+        echo $config_contents > $config_location
+        echo "Add the following to GitHub's SSH key store for signing: $(cat $key_location.pub)"
+    fi
+}

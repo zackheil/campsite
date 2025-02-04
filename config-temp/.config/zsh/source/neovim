@@ -1,0 +1,15 @@
+this_file="${${(%):-%N}##*/}" 
+
+if command -v nvim >/dev/null 2>&1; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+    alias vim='nvim'
+
+    # run the playground instance of neovim to test config ideas
+    pvim() {
+        NVIM_APPNAME=nvim-playground nvim "$@"
+    }
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi
+

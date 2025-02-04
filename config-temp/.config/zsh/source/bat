@@ -1,0 +1,10 @@
+this_file="${${(%):-%N}##*/}"
+
+if command -v bat >/dev/null 2>&1; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+
+    export BAT_THEME="tokyonight_night"
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi
+

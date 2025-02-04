@@ -1,0 +1,10 @@
+this_file="${${(%):-%N}##*/}"
+
+if [[ -d "/Applications/Obsidian.app" ]]; then
+    zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+    alias obs="open -a '/Applications/Obsidian.app'"
+    alias obss="cd '$HOME/Obsidian'"
+else
+    zlog_debug $this_file "Skipping source file for zsh. Existence condition not met." 
+fi

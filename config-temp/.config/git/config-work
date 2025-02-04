@@ -1,0 +1,11 @@
+[user]
+	name = Zack Heil
+	email = 99351543+zack-heil-fhr@users.noreply.github.com
+	signingkey = ssh-ed25519 AAAAAC3NzaC1lZDI1NTE5AAAAIAce5iLrfcFUjzl0KM4urE6kSA58vTYOjkEBT7V/MGyl 99351543+zack-heil-fhr@users.noreply.github.com
+
+[core]
+	sshCommand = "ssh -F ~/.local/share/git/auth-work-ssh-config"
+
+[gpg "ssh"]
+	allowedSignersFile = ~/.local/share/git/work-git-commit-sign-key-allowed-signers
+

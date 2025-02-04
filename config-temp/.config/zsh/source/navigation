@@ -1,0 +1,54 @@
+this_file="${${(%):-%N}##*/}" 
+zlog_debug $this_file "Sourcing configuration for zsh." 
+    
+# general navigation utils
+list() {
+    # Custom color to match ls dir color
+    printf "%40s\n" "${sh_blue}"
+
+    # Calculate the number of spaces for the horizontal line (tput cols minus 2 for borders)
+    cols=$(tput cols)
+    line_length=$((cols - 2))
+
+    # Print the top border with rounded corners 
+    printf "╭%${line_length}s╮\n" | tr " " "─"
+
+    printf "%40s\n" "${sh_yellow}"
+    pwd | tr -d '\n'
+    printf "/$2: \n"
+    printf "%40s\n" "${sh_normal}"
+
+    # Run the ls command
+    command ls "$@"
+
+    # Print the bottom border with rounded corners 
+    printf "%40s\n" "${sh_blue}"
+    printf "╰%${line_length}s╯\n" | tr " " "─"
+    printf "%40s\n" "${sh_normal}"
+}
+
+alias ls='list -FG'     # distinguishes file types (dirs, executables), adds color
+alias ll='list -FGAlhp' # preferred ls -la
+alias l='list -FGAlhp'  # preferred ls -la
+
+alias lr='command ls -R | grep ":$" | sed -e '\''s/:$//'\'' -e '\''s/[^-][^\/]*\//--/g'\'' -e '\''s/^/   /'\'' -e '\''s/-/|/'\'' | less'
+
+alias c="clear"
+
+mkd() { mkdir -p "$1" && cd "$1"; }
+
+# my preferred implementation of cd
+cd() {
+    builtin cd "$@";
+    ls;
+}
+
+alias cd..='cd ../';
+alias ..='cd ../';
+alias .2='cd ../../';
+alias .3='cd ../../../';
+alias .4='cd ../../../../';
+alias .5='cd ../../../../../';
+alias .6='cd ../../../../../../';
+alias ~='cd ~';
+
