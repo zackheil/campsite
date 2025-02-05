@@ -1,4 +1,4 @@
-#!/user/bin/env zsh
+#!/usr/bin/env zsh
 generate_git_key() {
     local type=""
     local email=""
