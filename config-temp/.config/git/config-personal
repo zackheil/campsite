@@ -1,11 +1,11 @@
 [user]
 	name = Zack Heil
 	email = 57419337+zackheil@users.noreply.github.com
-	signingkey = ssh-ed25519 AAAAAC3NzaC1lZDI1NTE5AAAAINJ8LE3AQCbPFcAhr0Z+tm0iApbF48F6w/4otF71+QCw 57419337+zackheil@users.noreply.github.com
+	signingkey = ~/.local/share/git/personal-git-commit-sign-key.pub
 
 [core]
 	sshCommand = "ssh -F ~/.local/share/git/auth-personal-ssh-config"
 
 [gpg "ssh"]
-	allowedSignersFile = ~/.local/share/git/personal-git-commit-sign-key-allowed-signers
+	allowedSignersFile = ~/.local/share/git/personal-git-sign-key-allowed-signers
 

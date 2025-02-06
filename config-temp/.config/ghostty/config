@@ -17,6 +17,9 @@ cursor-style = block
 theme = light:zack-light, dark:zack-dark
 background-opacity = 0.97
 
+# funny, but not usable realistically
+# custom-shader = shaders/glow-glitch.glsl
+# custom-shader-animation = always
 
 # icon appearance
 macos-icon = custom-style

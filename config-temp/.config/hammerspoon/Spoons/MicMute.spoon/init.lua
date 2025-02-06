@@ -4,7 +4,7 @@
 ---
 --- Download: [https://github.com/Hammerspoon/Spoons/raw/master/Spoons/MicMute.spoon.zip](https://github.com/Hammerspoon/Spoons/raw/master/Spoons/MicMute.spoon.zip)
 
-local obj={}
+local obj = {}
 obj.__index = obj
 
 -- Metadata
@@ -14,27 +14,34 @@ obj.author = "dctucker <dctucker@github.com>"
 obj.homepage = "https://dctucker.com"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
-obj.mutesound = hs.sound.getByFile("/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/mic_mute.caf")
-obj.unmutesound = hs.sound.getByFile("/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/mic_unmute.caf")
+obj.mutesound = hs.sound.getByFile(
+  "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/mic_mute.caf")
+obj.unmutesound = hs.sound.getByFile(
+  "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/mic_unmute.caf")
 
 function obj:updateMicMute(muted)
-	local commonstyle = { 
-		-- color = { red=255, green=0, blue=0, alpha=1.0 },
-		-- font = { size = 14.5 },
-		paragraphStyle = {
-			paragraphSpacingBefore = 10.5,
-			alignment = "center",
-			lineSpacing = 13.5,
-		}
-	}
-	if muted == -1 then
-		muted = hs.audiodevice.defaultInputDevice():muted()
-	end
-	if muted then
-		obj.mute_menu:setTitle(hs.styledtext.new("􀊳", commonstyle))
-	else
-		obj.mute_menu:setTitle(hs.styledtext.new("􀊱", commonstyle))
-	end
+  local commonstyle = {
+    -- color = { red=255, green=0, blue=0, alpha=1.0 },
+    -- font = { size = 14.5 },
+    { font = { name = "SF Pro" } },
+    paragraphStyle = {
+      paragraphSpacingBefore = 10.5,
+      alignment = "center",
+      lineSpacing = 13.5,
+    }
+  }
+  if muted == -1 then
+    muted = hs.audiodevice.defaultInputDevice():muted()
+  end
+
+  local muteChar = utf8.char(0x1002b3)
+  local unmuteChar = utf8.char(0x1002b1)
+
+  if muted then
+    obj.mute_menu:setTitle(hs.styledtext.new(muteChar, commonstyle))
+  else
+    obj.mute_menu:setTitle(hs.styledtext.new(unmuteChar, commonstyle))
+  end
 end
 
 --- MicMute:toggleMicMute()
@@ -44,49 +51,49 @@ end
 --- Parameters:
 ---  * None
 function obj:toggleMicMute()
-	local mic = hs.audiodevice.defaultInputDevice()
-	-- local zoom = hs.application'Zoom'
-  	-- local teams = hs.application.find("com.microsoft.teams")
-	if mic:muted() then
-		mic:setInputMuted(false)
-		obj.unmutesound:play()
-		-- if zoom then
-		-- 	local ok = zoom:selectMenuItem'Unmute Audio'
-		-- 	if not ok then
-		-- 		hs.timer.doAfter(0.5, function()
-		-- 			zoom:selectMenuItem'Unmute Audio'
-		-- 		end)
-		-- 	end
-		-- end
-		-- if teams then
-		-- 	local ok = teams:selectMenuItem'Unmute'
-		-- 	if not ok then
-		-- 		hs.timer.doAfter(0.5, function()
-		-- 			hs.eventtap.keyStroke({"cmd","shift"}, "m", 0, teams)
-		-- 		end)
-		-- 	end
-		-- end
-	else
-		mic:setInputMuted(true)
-		obj.mutesound:play()
-		-- if zoom then
-		-- 	local ok = zoom:selectMenuItem'Mute Audio'
-		-- 	if not ok then
-		-- 		hs.timer.doAfter(0.5, function()
-		-- 			zoom:selectMenuItem'Mute Audio'
-		-- 		end)
-		-- 	end
-		-- end
-		-- if teams then
-		-- 	local ok = teams:selectMenuItem'Mute'
-		-- 	if not ok then
-		-- 		hs.timer.doAfter(0.5, function()
-		-- 			hs.eventtap.keyStroke({"cmd","shift"}, "m", 0, teams)
-		-- 		end)
-		-- 	end
-		-- end
-	end
-	obj:updateMicMute(-1)
+  local mic = hs.audiodevice.defaultInputDevice()
+  -- local zoom = hs.application'Zoom'
+  -- local teams = hs.application.find("com.microsoft.teams")
+  if mic:muted() then
+    mic:setInputMuted(false)
+    obj.unmutesound:play()
+    -- if zoom then
+    -- 	local ok = zoom:selectMenuItem'Unmute Audio'
+    -- 	if not ok then
+    -- 		hs.timer.doAfter(0.5, function()
+    -- 			zoom:selectMenuItem'Unmute Audio'
+    -- 		end)
+    -- 	end
+    -- end
+    -- if teams then
+    -- 	local ok = teams:selectMenuItem'Unmute'
+    -- 	if not ok then
+    -- 		hs.timer.doAfter(0.5, function()
+    -- 			hs.eventtap.keyStroke({"cmd","shift"}, "m", 0, teams)
+    -- 		end)
+    -- 	end
+    -- end
+  else
+    mic:setInputMuted(true)
+    obj.mutesound:play()
+    -- if zoom then
+    -- 	local ok = zoom:selectMenuItem'Mute Audio'
+    -- 	if not ok then
+    -- 		hs.timer.doAfter(0.5, function()
+    -- 			zoom:selectMenuItem'Mute Audio'
+    -- 		end)
+    -- 	end
+    -- end
+    -- if teams then
+    -- 	local ok = teams:selectMenuItem'Mute'
+    -- 	if not ok then
+    -- 		hs.timer.doAfter(0.5, function()
+    -- 			hs.eventtap.keyStroke({"cmd","shift"}, "m", 0, teams)
+    -- 		end)
+    -- 	end
+    -- end
+  end
+  obj:updateMicMute(-1)
 end
 
 --- MicMute:bindHotkeys(mapping, latch_timeout)
@@ -98,45 +105,44 @@ end
 ---   * toggle - This will cause the microphone mute status to be toggled. Hold for momentary, press quickly for toggle.
 ---  * latch_timeout - Time in seconds to hold the hotkey before momentary mode takes over, in which the mute will be toggled again when hotkey is released. Latch if released before this time. 0.75 for 750 milliseconds is a good value.
 function obj:bindHotkeys(mapping, latch_timeout)
-	if (self.hotkey) then
-		self.hotkey:delete()
-	end
-	local mods = mapping["toggle"][1]
-	local key = mapping["toggle"][2]
+  if (self.hotkey) then
+    self.hotkey:delete()
+  end
+  local mods = mapping["toggle"][1]
+  local key = mapping["toggle"][2]
 
-	if latch_timeout then
-		self.hotkey = hs.hotkey.bind(mods, key, function()
-			self:toggleMicMute()
-			self.time_since_mute = hs.timer.secondsSinceEpoch()
-		end, function()
-			if hs.timer.secondsSinceEpoch() > self.time_since_mute + latch_timeout then
-				self:toggleMicMute()
-			end
-		end)
-	else
-		self.hotkey = hs.hotkey.bind(mods, key, function()
-			self:toggleMicMute()
-		end)
-	end
+  if latch_timeout then
+    self.hotkey = hs.hotkey.bind(mods, key, function()
+      self:toggleMicMute()
+      self.time_since_mute = hs.timer.secondsSinceEpoch()
+    end, function()
+      if hs.timer.secondsSinceEpoch() > self.time_since_mute + latch_timeout then
+        self:toggleMicMute()
+      end
+    end)
+  else
+    self.hotkey = hs.hotkey.bind(mods, key, function()
+      self:toggleMicMute()
+    end)
+  end
 
-	return self
+  return self
 end
 
-
 function obj:init()
-	obj.time_since_mute = 0
-	obj.mute_menu = hs.menubar.new()
-	obj.mute_menu:setClickCallback(function()
-		obj:toggleMicMute()
-	end)
-	obj:updateMicMute(-1)
+  obj.time_since_mute = 0
+  obj.mute_menu = hs.menubar.new()
+  obj.mute_menu:setClickCallback(function()
+    obj:toggleMicMute()
+  end)
+  obj:updateMicMute(-1)
 
-	hs.audiodevice.watcher.setCallback(function(arg)
-		if string.find(arg, "dIn ") then
-			obj:updateMicMute(-1)
-		end
-	end)
-	hs.audiodevice.watcher.start()
+  hs.audiodevice.watcher.setCallback(function(arg)
+    if string.find(arg, "dIn ") then
+      obj:updateMicMute(-1)
+    end
+  end)
+  hs.audiodevice.watcher.start()
 end
 
 return obj

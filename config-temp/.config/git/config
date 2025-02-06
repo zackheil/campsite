@@ -1,14 +1,13 @@
 [user]
 	name = Zack Heil
 	email = 99351543+zack-heil-fhr@users.noreply.github.com
-	signingkey = ssh-ed25519 AAAAAC3NzaC1lZDI1NTE5AAAAIAce5iLrfcFUjzl0KM4urE6kSA58vTYOjkEBT7V/MGyl 99351543+zack-heil-fhr@users.noreply.github.com
+	signingkey = ~/.local/share/git/work-git-commit-sign-key.pub
 
 [core]
 	sshCommand = "ssh -F ~/.local/share/git/auth-work-ssh-config"
 
 [gpg "ssh"]
-	allowedSignersFile = ~/.local/share/git/work-git-commit-sign-key-allowed-signers
-
+	allowedSignersFile = ~/.local/share/git/work-git-sign-key-allowed-signers
 
 [init]
 	defaultBranch = main
@@ -27,8 +26,12 @@
     insteadOf = https://github.com/
     insteadOf = http://github.com/
 
+[url "ssh://git@kochsource.io/"]
+    insteadOf = https://kochsource.io/
+    insteadOf = http://kochsource.io/
+
 [commit]
-	gpgSign = true
+	gpgSign = true 
 
 [includeIf "gitdir:~/Developer/personal/"]
 	path = ~/.config/git/config-personal

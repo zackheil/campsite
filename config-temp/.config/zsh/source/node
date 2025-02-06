@@ -9,6 +9,23 @@ if command ls "$(brew --prefix)"/opt | grep -q "node"; then
     export NPM_CONFIG_TMP="${XDG_RUNTIME_DIR}/npm"
     export NPM_CONFIG_USERCONFIG="${XDG_DATA_HOME}/npm/config"
 
+    # TODO: temp location for this function
+    sd() {
+        # Capture the timestamp in a variable so both commands use the same filename.
+        local logdir=".logs"
+        local timestamp=$(date -u +%Y-%m-%dT%H:%M:%S)
+        local logPath="$logdir/run-${timestamp}.log"
+
+        mkdir -p $logdir
+
+        # Start the process in the background, redirecting the output to the log file.
+        pnpm start &> "$logPath" &
+
+        # Optionally wait a moment if needed, then tail the log file.
+        tail -f "$logPath" | grep --line-buffered '^{' | jq --unbuffered --color-output '.' | less -R +F
+    }
+
+
 
     nv() {
         # Handle the --info flag

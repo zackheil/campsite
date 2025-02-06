@@ -36,15 +36,26 @@ generate_git_key() {
     local key_location=""
     local config_location=""
     local config_contents=""
+    local known_hosts_location=""
+    local known_hosts_contents="[ssh.github.com]:443 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl\n"
+    known_hosts_contents+="[ssh.github.com]:443 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=\n"
+    known_hosts_contents+="[ssh.github.com]:443 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=\n"
+    known_hosts_contents+="kochsource.io ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIbQKpVsqaly1e+T2RBW9VKkm2hPl0eNM6EeV9sUBz+y\n"
+    known_hosts_contents+="kochsource.io ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBK/gP5e8Jx7ZCjxzIr/QP93R+ZD3RnSU3HKYIvZ1phNfTN86Hf8itS3PF5XcQkgtCZ4v7sGPd5rwCtHT/I4ovfKZREI4l/whKKCXN/43JaS/0XPWUxpltxn+YYe6X8/fKGBDlsFht9B0ElAtfmD25LUZjiVNQ0YEUOZHExCikPfdZzIHBWAzWq3slHQCREgYz3a4nDOXFBAre/xYTLuIvYy6+dV1bsMgGBuPpY84u1uPeTwRsEFccAh+2LkIhWf4RsH4zvP/r6O30/+NrhgQtYO0w46X8t6av4tzxA9JqfXppiNZdCeVha/13ITB6Bq2BElXs/I8Iq6HM4aBt7ngd\n"
+    known_hosts_contents+="kochsource.io ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE9TzQ3oqLxQ9WuoFDanWPV4CUJbYrpKd7tFNAHMuJeFfKRB2Q03CmabPeIOWhopy9DwGVc8dDvjk/jbCBvKR9I=\n"
 
     if [[ "$key" == "authentication" ]]; then
         key_location="$XDG_DATA_HOME/git/$type-github-$key-key"
         config_location="$XDG_DATA_HOME/git/auth-$type-ssh-config"
-        config_contents="Host *\n    HostName github.com\n    IdentityFile $key_location\n    IdentitiesOnly yes"
+        config_contents="Host *github.com\n    HostName ssh.github.com\n    IdentityFile ~/.local/share/git/work-github-authentication-key\n    IdentitiesOnly yes\n    UserKnownHostsFile ~/.local/share/git/git-ssh-known-hosts\n    Port 443\n    User git\n    Host kochsource.io\n    HostName kochsource.io\n    IdentityFile ~/.local/share/git/work-github-authentication-key\n    IdentitiesOnly yes\n    UserKnownHostsFile ~/.local/share/git/git-ssh-known-hosts\n    Port 22\n    User git\n"
+
+        known_hosts_location="$XDG_DATA_HOME/git/git-ssh-known-hosts"
 
         ssh-keygen -t ed25519 -C $email -f $key_location -N "" -q
         chmod 600 $key_location
         chmod 644 $key_location.pub
+
+        echo $known_hosts_contents > $known_hosts_location
 
         echo $config_contents > $config_location
         echo "Add the following to GitHub's SSH key store for authentication: $(cat $key_location.pub)"
