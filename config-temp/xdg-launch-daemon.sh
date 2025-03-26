@@ -153,7 +153,7 @@ remove_launch_daemon() {
   if [[ -f "$PLIST_PATH" ]]; then
     log_action "Unloading LaunchDaemon"
     if [[ $DRY_RUN == false ]]; then
-      launchctl unload "$PLIST_PATH"
+      launchctl bootout system "$PLIST_PATH"
     fi
     
     log_action "Removing LaunchDaemon plist file: $PLIST_PATH"
@@ -203,19 +203,11 @@ create_launch_daemon() {
   
   if [[ $DRY_RUN == false ]]; then
     # First create the XML plist in a temporary file
-    TEMP_PLIST_FILE=$(mktemp)
-    echo "$PLIST_CONTENT" > "$TEMP_PLIST_FILE"
+    echo "$PLIST_CONTENT" > "$PLIST_PATH"
     
-    # Convert to binary plist format using plutil
-    log_action "Converting plist to binary format using plutil"
-    execute_cmd "plutil -convert binary1 \"$TEMP_PLIST_FILE\" -o \"$PLIST_PATH\""
-    
-    # Clean up temporary file
-    rm -f "$TEMP_PLIST_FILE"
   else
-    echo "[DRY RUN] Would create plist file with the following content (converted to binary format):"
+    echo "[DRY RUN] Would create plist file with the following content at: $PLIST_PATH"
     echo "$PLIST_CONTENT"
-    echo "[DRY RUN] Would convert the XML plist to binary format using: plutil -convert binary1"
   fi
   
   # Set proper permissions for the plist file
@@ -226,7 +218,7 @@ create_launch_daemon() {
   # Load the LaunchDaemon
   log_action "Loading LaunchDaemon"
   if [[ $DRY_RUN == false ]]; then
-    launchctl load "$PLIST_PATH"
+    launchctl bootstrap system "$PLIST_PATH"
     echo "LaunchDaemon has been successfully installed and loaded"
   fi
 }
@@ -240,12 +232,6 @@ echo "    that will run at startup with root privileges."
 echo "    Please ensure you've reviewed this script before"
 echo "    continuing, as it affects system configuration."
 echo "======================================================"
-
-# Check if we have the process script
-if [[ ! -f "$PROCESS_SCRIPT" ]]; then
-  echo "ERROR: Process script not found at $PROCESS_SCRIPT"
-  exit 1
-fi
 
 # Check root permissions
 check_root
